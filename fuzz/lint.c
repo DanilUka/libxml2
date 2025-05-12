@@ -136,7 +136,7 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         abort();
     }
 
-    vars.argv = malloc((numSwitches + 5 + 6 * 2) * sizeof(vars.argv[0]));
+    vars.argv = malloc((numSwitches + 5 + 7 * 2) * sizeof(vars.argv[0]));
     vars.argi = 0;
     pushArg("xmllint"),
     pushArg("--nocatalogs");
@@ -214,6 +214,17 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         pushArg("--xpath");
         pushArg(sval);
     }
+
+    char tmpFileName[] = "/tmp/fuzz-XXXXXX";
+    int tmpFd = mkstemp(tmpFileName);
+    if (tmpFd < 0)
+        return 0;
+
+    write(tmpFd, data, size);
+    close(tmpFd);
+
+    pushArg("--memory");
+    pushArg(tmpFileName);
 
     xmlFuzzReadEntities();
     docBuffer = xmlFuzzMainEntity(&docSize);
