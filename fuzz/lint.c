@@ -223,15 +223,19 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
     write(tmpFd, data, size);
     close(tmpFd);
 
-    pushArg("--memory");
-    pushArg(tmpFileName);
+    if (xmlFuzzReadInt(1) % 2 == 0) {
+        pushArg("--memory");
+        pushArg(tmpFileName);
+    }
+    else {
+        docBuffer = xmlFuzzMainEntity(&docSize);
+        docUrl = xmlFuzzMainUrl();
+        if (docBuffer == NULL || docUrl[0] == '-')
+            goto exit;
 
-    xmlFuzzReadEntities();
-    docBuffer = xmlFuzzMainEntity(&docSize);
-    docUrl = xmlFuzzMainUrl();
-    if (docBuffer == NULL || docUrl[0] == '-')
-        goto exit;
-    pushArg(docUrl);
+        xmlFuzzInjectMainEntity(docBuffer, docSize);
+        pushArg(docUrl);
+    }
 
     pushArg(NULL);
 
