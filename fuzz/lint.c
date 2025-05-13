@@ -214,17 +214,43 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         pushArg("--xpath");
         pushArg(sval);
     }
+    
+    ival = xmlFuzzReadInt(1);
+    if (ival != 0){
+        pushArg("--memory");
 
-    char tmpFileName[] = "/tmp/fuzz-XXXXXX";
-    int tmpFd = mkstemp(tmpFileName);
-    if (tmpFd < 0)
-        return 0;
+        char tmpName[] = "/tmp/fuzz-xml-XXXXXX";
+        int fd = mkstemp(tmpName);
+        if (fd != -1)
+        {
+            write(fd, docBuffer, docSize);
+            lseek(fd, 0, SEEK_SET);
 
-    write(tmpFd, data, size);
-    close(tmpFd);
+            char *memBuffer = malloc(docSize + 1);
+            if (memBuffer != NULL)
+            {
+                ssize_t readBytes = read(fd, memBuffer, docSize);
+                close(fd);
+                unlink(tmpName);
 
-    pushArg("--memory");
-    pushArg(tmpFileName);
+                if (readBytes == (ssize_t)docSize)
+                {
+                    memBuffer[docSize] = '\0';
+                    docUrl = "-";
+                    xmlFuzzInjectMainEntity(memBuffer, docSize);
+                }
+                else
+                {
+                    free(memBuffer);
+                }
+            }
+            else
+            {
+                close(fd);
+                unlink(tmpName);
+            }
+        }
+    }
 
     xmlFuzzReadEntities();
     docBuffer = xmlFuzzMainEntity(&docSize);
@@ -246,7 +272,6 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
 
 exit:
     xmlFuzzDataCleanup();
-    unlink(tmpFileName);
     free(vars.argv);
     return(0);
 }
