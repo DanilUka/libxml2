@@ -43,7 +43,7 @@ for fuzzer in \
 do
     OBJS="$fuzzer.o"
     if [ "$fuzzer" = lint ]; then
-        OBJS="$OBJS ../xmllint.o ../shell.o"
+        OBJS="$OBJS ../xmllint.o ../shell.o fuzz.o"
     fi
     make $OBJS
     # Link with $CXX
