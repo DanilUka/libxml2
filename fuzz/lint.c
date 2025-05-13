@@ -215,6 +215,24 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         pushArg(sval);
     }
 
+    // char tmpFileName[] = "/tmp/fuzz-XXXXXX";
+    // int tmpFd = mkstemp(tmpFileName);
+    // if (tmpFd < 0)
+    //     return 0;
+
+    // write(tmpFd, data, size);
+    // close(tmpFd);
+
+    // pushArg("--memory");
+    // pushArg(tmpFileName);
+
+    // xmlFuzzReadEntities();
+    // docBuffer = xmlFuzzMainEntity(&docSize);
+    // docUrl = xmlFuzzMainUrl();
+    // if (docBuffer == NULL || docUrl[0] == '-')
+    //     goto exit;
+    // pushArg(docUrl);
+
     char tmpFileName[] = "/tmp/fuzz-XXXXXX";
     int tmpFd = mkstemp(tmpFileName);
     if (tmpFd < 0)
@@ -228,12 +246,12 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         pushArg(tmpFileName);
     }
     else {
+        xmlFuzzReadEntities();
         docBuffer = xmlFuzzMainEntity(&docSize);
         docUrl = xmlFuzzMainUrl();
         if (docBuffer == NULL || docUrl[0] == '-')
             goto exit;
 
-        xmlFuzzInjectMainEntity(docBuffer, docSize);
         pushArg(docUrl);
     }
 
