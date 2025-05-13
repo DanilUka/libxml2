@@ -214,50 +214,42 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         pushArg("--xpath");
         pushArg(sval);
     }
-    
-    ival = xmlFuzzReadInt(1);
-    if (ival != 0){
-        pushArg("--memory");
-
-        char tmpName[] = "/tmp/fuzz-xml-XXXXXX";
-        int fd = mkstemp(tmpName);
-        if (fd != -1)
-        {
-            write(fd, docBuffer, docSize);
-            lseek(fd, 0, SEEK_SET);
-
-            char *memBuffer = malloc(docSize + 1);
-            if (memBuffer != NULL)
-            {
-                ssize_t readBytes = read(fd, memBuffer, docSize);
-                close(fd);
-                unlink(tmpName);
-
-                if (readBytes == (ssize_t)docSize)
-                {
-                    memBuffer[docSize] = '\0';
-                    docUrl = "-";
-                    xmlFuzzInjectMainEntity(memBuffer, docSize);
-                }
-                else
-                {
-                    free(memBuffer);
-                }
-            }
-            else
-            {
-                close(fd);
-                unlink(tmpName);
-            }
-        }
-    }
 
     xmlFuzzReadEntities();
     docBuffer = xmlFuzzMainEntity(&docSize);
     docUrl = xmlFuzzMainUrl();
-    if (docBuffer == NULL || docUrl[0] == '-')
+    if (docBuffer == NULL)
         goto exit;
-    pushArg(docUrl);
+
+    ival = xmlFuzzReadInt(1);
+    if (ival == 1)
+    {
+        // Simulate --memory behavior
+        int memfd;
+        char memFile[] = "/tmp/xmlfuzz-XXXXXX";
+        memfd = mkstemp(memFile);
+        if (memfd < 0)
+            goto exit;
+
+        // Write content and close
+        if (write(memfd, docBuffer, docSize) != (ssize_t)docSize)
+        {
+            close(memfd);
+            goto exit;
+        }
+        close(memfd);
+
+        // Use --memory with the temp file
+        pushArg("--memory");
+        pushArg(memFile);
+    }
+    else
+    {
+        if (docUrl[0] == '-')
+            goto exit;
+        pushArg(docUrl);
+    }
+
 
     pushArg(NULL);
 
