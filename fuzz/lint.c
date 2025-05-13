@@ -215,41 +215,23 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         pushArg(sval);
     }
 
+    char tmpFileName[] = "/tmp/fuzz-XXXXXX";
+    int tmpFd = mkstemp(tmpFileName);
+    if (tmpFd < 0)
+        return 0;
+
+    write(tmpFd, data, size);
+    close(tmpFd);
+
+    pushArg("--memory");
+    pushArg(tmpFileName);
+
     xmlFuzzReadEntities();
     docBuffer = xmlFuzzMainEntity(&docSize);
     docUrl = xmlFuzzMainUrl();
-    if (docBuffer == NULL)
+    if (docBuffer == NULL || docUrl[0] == '-')
         goto exit;
-
-    ival = xmlFuzzReadInt(1);
-    if (ival == 1)
-    {
-        // Simulate --memory behavior
-        int memfd;
-        char memFile[] = "/tmp/xmlfuzz-XXXXXX";
-        memfd = mkstemp(memFile);
-        if (memfd < 0)
-            goto exit;
-
-        // Write content and close
-        if (write(memfd, docBuffer, docSize) != (ssize_t)docSize)
-        {
-            close(memfd);
-            goto exit;
-        }
-        close(memfd);
-
-        // Use --memory with the temp file
-        pushArg("--memory");
-        pushArg(memFile);
-    }
-    else
-    {
-        if (docUrl[0] == '-')
-            goto exit;
-        pushArg(docUrl);
-    }
-
+    pushArg(docUrl);
 
     pushArg(NULL);
 
@@ -264,6 +246,7 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
 
 exit:
     xmlFuzzDataCleanup();
+    unlink(tmpFileName);
     free(vars.argv);
     return(0);
 }
