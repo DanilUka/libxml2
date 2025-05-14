@@ -226,34 +226,34 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
     // pushArg("--memory");
     // pushArg(tmpFileName);
 
-    // xmlFuzzReadEntities();
-    // docBuffer = xmlFuzzMainEntity(&docSize);
-    // docUrl = xmlFuzzMainUrl();
-    // if (docBuffer == NULL || docUrl[0] == '-')
-    //     goto exit;
-    // pushArg(docUrl);
+    xmlFuzzReadEntities();
+    docBuffer = xmlFuzzMainEntity(&docSize);
+    docUrl = xmlFuzzMainUrl();
+    if (docBuffer == NULL || docUrl[0] == '-')
+        goto exit;
+    pushArg(docUrl);
 
-    char tmpFileName[] = "/tmp/fuzz-XXXXXX";
-    int tmpFd = mkstemp(tmpFileName);
-    if (tmpFd < 0)
-        return 0;
+    // char tmpFileName[] = "/tmp/fuzz-XXXXXX";
+    // int tmpFd = mkstemp(tmpFileName);
+    // if (tmpFd < 0)
+    //     return 0;
 
-    write(tmpFd, data, size);
-    close(tmpFd);
+    // write(tmpFd, data, size);
+    // close(tmpFd);
 
-    if (xmlFuzzReadInt(1) % 2 == 0) {
-        pushArg("--memory");
-        pushArg(tmpFileName);
-    }
-    else {
-        xmlFuzzReadEntities();
-        docBuffer = xmlFuzzMainEntity(&docSize);
-        docUrl = xmlFuzzMainUrl();
-        if (docBuffer == NULL || docUrl[0] == '-')
-            goto exit;
+    // if (xmlFuzzReadInt(1) % 2 == 0) {
+    //     pushArg("--memory");
+    //     pushArg(tmpFileName);
+    // }
+    // else {
+    //     xmlFuzzReadEntities();
+    //     docBuffer = xmlFuzzMainEntity(&docSize);
+    //     docUrl = xmlFuzzMainUrl();
+    //     if (docBuffer == NULL || docUrl[0] == '-')
+    //         goto exit;
 
-        pushArg(docUrl);
-    }
+    //     pushArg(docUrl);
+    // }
 
     pushArg(NULL);
 
