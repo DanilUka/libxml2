@@ -554,9 +554,6 @@ xmlSaveWriteAttributeDecl(xmlSaveCtxtPtr ctxt, xmlAttributePtr attr) {
 static void
 xmlBufDumpEntityContent(xmlOutputBufferPtr buf, const xmlChar *content) {
     const char * base, *cur;
-
-    if (content == NULL)
-    return;
     
     xmlOutputBufferWrite(buf, 1, "\"");
     base = cur = (const char *) content;
