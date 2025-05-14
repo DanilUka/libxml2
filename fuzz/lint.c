@@ -268,7 +268,7 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
 
 exit:
     xmlFuzzDataCleanup();
-    unlink(tmpFileName);
+   // unlink(tmpFileName);
     free(vars.argv);
     return(0);
 }
